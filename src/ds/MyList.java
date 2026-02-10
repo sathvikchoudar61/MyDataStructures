@@ -7,14 +7,11 @@ public class MyList<T extends Comparable<T>> {
 	int index;
 	int size=10;
 	
-	@SuppressWarnings("unchecked")
 	public MyList(){ 
 		this.arr=new Object[size];
 		this.index=0;
 	}
 	
-	
-	@SuppressWarnings("unchecked")
 	void upgrade() {
 		size=size+(size/2);
 		Object[] temp = new Object[size];
@@ -152,7 +149,6 @@ public class MyList<T extends Comparable<T>> {
 		return temp;
 	}
 	
-	@SuppressWarnings("unchecked")
 	Object[] subArray(int start_idx) throws IndexOutOfRange {
 		if(start_idx<0 || start_idx>=index) {
 			throw new AppExceptions.IndexOutOfRange("index out of range");
@@ -165,7 +161,6 @@ public class MyList<T extends Comparable<T>> {
 		return temp;
 	}
 	
-	@SuppressWarnings("unchecked")
 	Object[] subArray(int start_idx,int close_idx) throws IndexOutOfRange {
 		if(start_idx<0 || start_idx>=index || close_idx>index || close_idx<0 || close_idx<start_idx) {
 			throw new AppExceptions.IndexOutOfRange("index out of range");
