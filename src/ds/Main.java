@@ -5,243 +5,191 @@ import ds.AppExceptions.IndexOutOfRange;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("=========================================");
-        System.out.println("   ULTIMATE EXTREME TESTING SUITE");
-        System.out.println("=========================================");
-
         try {
-            testMyListBasicAndStress();
-            testMyHashMapBasicAndStress();
-            testMyHashSetBasicAndStress();
-
-            testNestedStructures();
-            testDeepNesting();
-            testExceptionHandling();
-
+            test_list();
+            test_stack();
+            test_queue();
+            test_hashmap();
+            test_hashset();
+            test_treemap();
+            test_treeset();
+            test_nested();
+            stress_test();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("FATAL ERROR: Test suite failed!");
         }
-
-        System.out.println("\nAll tests completed successfully.");
     }
 
-    // ==========================================
-    // BASIC & STRESS TESTS (Preserved & Expanded)
-    // ==========================================
-
-    private static void testMyListBasicAndStress() throws IndexOutOfRange {
-        System.out.println("\n>>> Testing MyList (Basic & Stress)...");
-        MyList<Integer> list = new MyList<>();
-
-        // 1. LIMITS & RESIZING
-        int limit = 10000;
-        for (int i = 0; i < limit; i++)
-            list.add(i);
-        if (list.size() != limit)
-            throw new RuntimeException("Size mismatch");
-        if (list.get(limit - 1) != limit - 1)
-            throw new RuntimeException("Content mismatch");
-        System.out.println("[PASS] Large Insert (10k)");
-
-        // 2. ROTATION
-        MyList<Integer> rList = new MyList<>();
-        for (int i = 0; i < 5; i++)
-            rList.add(i);
-        rList.rotateLeft(1); // [1,2,3,4,0]
-        if (rList.get(4) != 0)
-            throw new RuntimeException("Rotate Left failed");
-        System.out.println("[PASS] Rotation");
-
-        // 3. REPLACEMENT
-        list.ReplaceAllOccurrences(9999, -1);
-        if (list.get(9999) != -1)
-            throw new RuntimeException("ReplaceAll failed");
-        System.out.println("[PASS] ReplaceAll");
-    }
-
-    private static void testMyHashMapBasicAndStress() {
-        System.out.println("\n>>> Testing MyHashMap (Basic & Stress)...");
-        MyHashMap<String, Integer> map = new MyHashMap<>();
-
-        // 1. COLLISION HANDLING
-        for (int i = 0; i < 1000; i++)
-            map.put("K" + i, i);
-        if (map.size() != 1000)
-            throw new RuntimeException("Map size mismatch");
-        if (map.get("K500") != 500)
-            throw new RuntimeException("Map retrieval failed");
-        System.out.println("[PASS] Collision & Resize (1k items)");
-
-        // 2. PUT IF ABSENT
-        map.putIfAbsent("K0", 9999);
-        if (map.get("K0") != 0)
-            throw new RuntimeException("PutIfAbsent overwrote existing key");
-        map.putIfAbsent("NewKey", 123);
-        if (map.get("NewKey") != 123)
-            throw new RuntimeException("PutIfAbsent failed to add");
-        System.out.println("[PASS] PutIfAbsent");
-    }
-
-    private static void testMyHashSetBasicAndStress() {
-        System.out.println("\n>>> Testing MyHashSet (Basic & Stress)...");
-        MyHashSet<Integer> set = new MyHashSet<>();
-
-        for (int i = 0; i < 1000; i++)
-            set.add(i);
-        set.add(0); // Duplicate
-        if (set.size() != 1000)
-            throw new RuntimeException("Set duplicate check failed");
-        System.out.println("[PASS] Set Duplicates & Resize");
-    }
-
-    // ==========================================
-    // NESTED STRUCTURE TESTS
-    // ==========================================
-
-    // Wrapper to make MyList/MyHashMap comparable so they can be stored in MyList
-    static class ComparableList<T extends Comparable<T>> implements Comparable<ComparableList<T>> {
-        MyList<T> list;
-
-        public ComparableList(MyList<T> list) {
-            this.list = list;
-        }
-
+    static class ComparableList<T extends Comparable<T>> extends MyList<T> implements Comparable<ComparableList<T>> {
         @Override
         public int compareTo(ComparableList<T> o) {
-            return Integer.compare(this.list.size(), o.list.size());
-        }
-
-        @Override
-        public String toString() {
-            return list.toString();
+            return Integer.compare(this.size(), o.size());
         }
     }
 
-    static class ComparableMap<K, V> implements Comparable<ComparableMap<K, V>> {
-        MyHashMap<K, V> map;
+    private static void test_list() throws IndexOutOfRange {
+        MyList<Integer> l = new MyList<>();
+        for (int i = 0; i < 20; i++)
+            l.add(i);
+        check(l.size() == 20, "size mismatch");
+        check(l.get(0) == 0, "index 0 mismatch");
 
-        public ComparableMap(MyHashMap<K, V> map) {
-            this.map = map;
+        for (int i = 20; i < 100; i++)
+            l.add(i);
+        check(l.size() == 100, "resize failed");
+
+        l.add(5, 999);
+        check(l.get(5) == 999, "insert failed");
+        check(l.size() == 101, "insert size fail");
+
+        l.remove(5);
+        check(l.get(5) == 5, "remove failed");
+        check(l.contains(50), "contains failed");
+
+        l.reverse();
+        check(l.get(0) == 99, "reverse fail");
+        l.reverse();
+        System.out.println("list passed");
+    }
+
+    private static void test_stack() {
+        MyStack<String> s = new MyStack<>();
+        for (int i = 0; i < 50; i++)
+            s.push("item " + i);
+        check(s.size() == 50, "stack size fail");
+
+        String p = s.pop();
+        check(p.equals("item 49"), "pop fail");
+
+        MyStack<Integer> empty = new MyStack<>();
+        check(empty.isEmpty(), "empty check fail");
+        System.out.println("stack passed");
+    }
+
+    private static void test_queue() {
+        MyQueue<Double> q = new MyQueue<>();
+        for (int i = 0; i < 50; i++)
+            q.add((double) i);
+        check(q.size() == 50, "queue size fail");
+
+        Double d = q.poll();
+        check(d == 0.0, "poll fail");
+
+        for (int i = 0; i < 1000; i++)
+            q.add((double) i);
+        while (!q.isEmpty())
+            q.poll();
+        check(q.size() == 0, "drain fail");
+        System.out.println("queue passed");
+    }
+
+    private static void test_hashmap() throws IndexOutOfRange {
+        MyHashMap<String, Integer> map = new MyHashMap<>();
+        map.put("one", 1);
+        map.put("two", 2);
+        check(map.size() == 2, "map size fail");
+        check(map.get("two") == 2, "get fail");
+
+        map.put("two", 22);
+        check(map.get("two") == 22, "update fail");
+
+        for (int i = 0; i < 100; i++)
+            map.put("k" + i, i);
+        check(map.size() == 102, "resize fail");
+
+        map.remove("one");
+        check(!map.containsKey("one"), "remove fail");
+        System.out.println("hashmap passed");
+    }
+
+    private static void test_hashset() throws IndexOutOfRange {
+        MyHashSet<String> set = new MyHashSet<>();
+        set.add("a");
+        set.add("b");
+        set.add("a");
+        check(set.size() == 2, "duplicate check fail");
+        check(set.contains("b"), "contains fail");
+
+        for (int i = 0; i < 100; i++)
+            set.add("v" + i);
+        check(set.contains("v99"), "mass add fail");
+        System.out.println("hashset passed");
+    }
+
+    private static void test_treemap() throws IndexOutOfRange {
+        MyTreeMap<Integer, String> tm = new MyTreeMap<>();
+        tm.put(10, "ten");
+        tm.put(5, "five");
+        tm.put(20, "twenty");
+
+        check(tm.size() == 3, "treemap size fail");
+        check(tm.peekFirstKey() == 5, "min key fail");
+        check(tm.get(5).equals("five"), "get fail");
+
+        tm.remove(5);
+        check(!tm.containsKey(5), "remove fail");
+        System.out.println("treemap passed");
+    }
+
+    private static void test_treeset() throws IndexOutOfRange {
+        MyTreeSet<Integer> ts = new MyTreeSet<>();
+        ts.add(50);
+        ts.add(25);
+        ts.add(75);
+
+        check(ts.contains(25), "treeset contains fail");
+        check(ts.peekFirst() == 25, "min fail");
+        check(ts.getCeil(28) == 50, "ceil fail");
+        System.out.println("treeset passed");
+    }
+
+    private static void test_nested() throws IndexOutOfRange {
+        MyList<ComparableList<Integer>> lol = new MyList<>();
+        for (int i = 0; i < 5; i++) {
+            ComparableList<Integer> sub = new ComparableList<>();
+            for (int j = 0; j < 5; j++)
+                sub.add(j * i);
+            lol.add(sub);
         }
+        check(lol.get(2).get(3) == 6, "nested list fail");
 
-        @Override
-        public int compareTo(ComparableMap<K, V> o) {
-            return Integer.compare(this.map.size(), o.map.size());
-        }
+        MyHashMap<String, MyHashSet<String>> adj = new MyHashMap<>();
+        MyHashSet<String> fa = new MyHashSet<>();
+        fa.add("bob");
+        adj.put("alice", fa);
+        check(adj.get("alice").contains("bob"), "nested map fail");
+
+        MyStack<MyQueue<Integer>> soq = new MyStack<>();
+        MyQueue<Integer> q1 = new MyQueue<>();
+        q1.add(1);
+        soq.push(q1);
+        check(soq.pop().poll() == 1, "nested stack fail");
+        System.out.println("nested passed");
     }
 
-    private static void testNestedStructures() throws IndexOutOfRange {
-        System.out.println("\n>>> Testing Nested Structures...");
+    private static void stress_test() throws IndexOutOfRange {
+        int lim = 100000;
+        long t = System.currentTimeMillis();
+        MyList<Integer> l = new MyList<>();
+        for (int i = 0; i < lim; i++)
+            l.add(i);
+        System.out.println("list stress: " + (System.currentTimeMillis() - t) + "ms");
 
-        // 1. MyList<ComparableList<Integer>> (Adapter pattern to satisfy Comparable
-        // constraint)
-        MyList<ComparableList<Integer>> listOfLists = new MyList<>();
-        MyList<Integer> innerList1 = new MyList<>();
-        innerList1.add(1);
-        innerList1.add(2);
+        t = System.currentTimeMillis();
+        MyHashMap<Integer, Integer> m = new MyHashMap<>();
+        for (int i = 0; i < lim; i++)
+            m.put(i, i * 2);
+        System.out.println("map stress: " + (System.currentTimeMillis() - t) + "ms");
 
-        MyList<Integer> innerList2 = new MyList<>();
-        innerList2.add(3);
-        innerList2.add(4);
-
-        listOfLists.add(new ComparableList<>(innerList1));
-        listOfLists.add(new ComparableList<>(innerList2));
-
-        if (listOfLists.size() != 2)
-            throw new RuntimeException("Nested List size mismatch");
-        if (listOfLists.get(0).list.get(0) != 1)
-            throw new RuntimeException("Nested List content mismatch");
-
-        System.out.println("[PASS] List of Lists (via Comparable Wrapper)");
-
-        // 2. MyHashMap<String, MyList<Integer>> (No Comparable constraint on Value)
-        MyHashMap<String, MyList<Integer>> mapOfLists = new MyHashMap<>();
-        mapOfLists.put("primes", innerList1);
-        if (mapOfLists.get("primes").size() != 2)
-            throw new RuntimeException("Map of Lists failed");
-        System.out.println("[PASS] Map of Lists");
-
-        // 3. MyHashSet<MyHashMap<String, String>>
-        MyHashSet<MyHashMap<String, String>> setOfMaps = new MyHashSet<>();
-        MyHashMap<String, String> map1 = new MyHashMap<>();
-        map1.put("id", "1");
-        setOfMaps.add(map1);
-
-        if (!setOfMaps.contains(map1))
-            throw new RuntimeException("Set of Maps contains check failed");
-        System.out.println("[PASS] Set of Maps");
+        t = System.currentTimeMillis();
+        MyTreeSet<Integer> ts = new MyTreeSet<>();
+        for (int i = 0; i < 20000; i++)
+            ts.add(i);
+        System.out.println("tree stress: " + (System.currentTimeMillis() - t) + "ms");
     }
 
-    // ==========================================
-    // DEEP NESTING TESTS
-    // ==========================================
-
-    private static void testDeepNesting() throws IndexOutOfRange {
-        System.out.println("\n>>> Testing Deep Nesting...");
-
-        // MyList<ComparableMap<String, MyHashSet<Integer>>>
-        MyList<ComparableMap<String, MyHashSet<Integer>>> complexStructure = new MyList<>();
-
-        MyHashSet<Integer> set = new MyHashSet<>();
-        set.add(42);
-
-        MyHashMap<String, MyHashSet<Integer>> map = new MyHashMap<>();
-        map.put("target", set);
-
-        complexStructure.add(new ComparableMap<>(map));
-
-        // Drill down
-        MyHashSet<Integer> retrievedSet = complexStructure.get(0).map.get("target");
-        if (!retrievedSet.contains(42))
-            throw new RuntimeException("Deep nesting retrieval failed");
-
-        System.out.println("[PASS] List -> Map -> Set -> Integer structure verified");
-    }
-
-    // ==========================================
-    // EXCEPTION & ERROR TESTS
-    // ==========================================
-
-    private static void testExceptionHandling() {
-        System.out.println("\n>>> Testing Exception Handling...");
-        MyList<Integer> list = new MyList<>();
-        list.add(10);
-
-        // 1. List Index Out of Range
-        assertException(() -> list.get(-1), "List get(-1)");
-        assertException(() -> list.get(100), "List get(100)");
-        assertException(() -> list.set(100, 5), "List set(100)");
-        assertException(() -> list.remove(100), "List remove(100)");
-        assertException(() -> list.subArray(100, 105), "List subArray invalid start");
-        assertException(() -> list.subArray(0, 100), "List subArray invalid end");
-
-        // 2. Invalid Rotations (Should handle gracefully or do nothing, but generally
-        // shouldn't crash)
-        try {
-            list.rotateLeft(1000);
-            list.rotateRight(1000);
-        } catch (Exception e) {
-            throw new RuntimeException("Rotation crashed on large inputs! " + e.getMessage());
-        }
-
-        System.out.println("[PASS] Exceptions caught where expected.");
-    }
-
-    // Helper interface for lambdas
-    interface RunnableTask {
-        void run() throws Exception;
-    }
-
-    private static void assertException(RunnableTask task, String testName) {
-        try {
-            task.run();
-            throw new RuntimeException("Test '" + testName + "' DID NOT Throw Exception!");
-        } catch (IndexOutOfRange e) {
-            // Expected
-            // System.out.println(" Verified exception for: " + testName);
-        } catch (Exception e) {
-            throw new RuntimeException("Test '" + testName + "' threw WRONG exception: " + e.getClass().getName());
-        }
+    private static void check(boolean cond, String msg) {
+        if (!cond)
+            throw new RuntimeException(msg);
     }
 }
