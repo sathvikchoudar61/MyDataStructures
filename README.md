@@ -10,7 +10,7 @@ Instead of relying on high-level abstractions, I've implemented these structures
 
 This project covers the implementation and testing of several core data structures: Arrays, Dynamic Lists, Stacks, Queues, Linked Lists, Trees, Binary Search Trees, and Hash Tables.
 
----
+
 
 ## Key Concepts Explored
 
@@ -22,7 +22,7 @@ Building these structures from scratch allowed me to dive deep into:
 4.  **BST Balancing**: Implementing a **Self-Balancing strategy** (balance counter) to maintain O(log n) complexity in TreeMaps and TreeSets.
 5.  **Generics**: Using Java Generics `<T>` to ensure type safety across all structures.
 
----
+
 
 ## Getting Started
 
